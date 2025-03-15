@@ -84,6 +84,22 @@ func New(config Config) *zap.Logger {
 	return zap.New(zapcore.NewTee(cores...), zap.AddCaller())
 }
 
+func Error(err error) zap.Field {
+	return zap.NamedError("error", err)
+}
+
+func CheckError(logger *zap.Logger, err error) {
+	if err != nil {
+		logger.Error("error:", Error(err))
+	}
+}
+
+func CheckPanic(logger *zap.Logger, err error) {
+	if err != nil {
+		logger.Panic("panic:", Error(err))
+	}
+}
+
 /* How to use:
 logger := go_logger.New(go_logger.Config{
 LogToFile:   true,
