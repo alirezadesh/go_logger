@@ -1,6 +1,7 @@
 package go_logger
 
 import (
+	"github.com/fatih/color"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
@@ -39,20 +40,25 @@ const (
 )
 
 func customColorLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	colors := map[zapcore.Level]string{
-		zapcore.DebugLevel:  "\033[36m",
-		zapcore.InfoLevel:   "\033[32m",
-		zapcore.WarnLevel:   "\033[33m",
-		zapcore.ErrorLevel:  "\033[31m",
-		zapcore.DPanicLevel: "\033[35m",
-		zapcore.PanicLevel:  "\033[35m",
-		zapcore.FatalLevel:  "\033[35m",
+	var c *color.Color
+
+	switch level {
+	case zapcore.DebugLevel:
+		c = color.New(color.FgCyan)
+	case zapcore.InfoLevel:
+		c = color.New(color.FgGreen)
+	case zapcore.WarnLevel:
+		c = color.New(color.FgYellow)
+	case zapcore.ErrorLevel:
+		c = color.New(color.FgRed)
+	case zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
+		c = color.New(color.FgMagenta)
+	default:
+		c = color.New(color.FgWhite)
 	}
-	color, exists := colors[level]
-	if !exists {
-		color = "\033[0m"
-	}
-	enc.AppendString(color + level.CapitalString() + "\033[0m")
+
+	coloredLevel := c.Sprint(level.CapitalString())
+	enc.AppendString(coloredLevel)
 }
 
 func applyEncoderConfig(enc zapcore.EncoderConfig, config EncodeConfig) zapcore.EncoderConfig {
