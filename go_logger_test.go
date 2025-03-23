@@ -8,9 +8,9 @@ import (
 
 func TestLoggerInitialization(t *testing.T) {
 	logger := New(Config{
-		LogToFile:   false,
-		ShowConsole: false,
-		LogLevel:    DebugLevel,
+		LogToFile:    false,
+		LogToConsole: false,
+		LogLevel:     DebugLevel,
 	})
 
 	if logger == nil {
@@ -30,11 +30,11 @@ func TestLoggerFileCreation(t *testing.T) {
 	}(logDir)
 
 	logger := New(Config{
-		LogToFile:   true,
-		FilePath:    logDir,
-		FileName:    logFile,
-		LogLevel:    DebugLevel,
-		ShowConsole: false,
+		LogToFile:    true,
+		FilePath:     logDir,
+		FileName:     logFile,
+		LogLevel:     DebugLevel,
+		LogToConsole: false,
 	})
 
 	if logger == nil {
@@ -59,11 +59,11 @@ func TestLoggerWritesToFile(t *testing.T) {
 	}(logDir)
 
 	logger := New(Config{
-		LogToFile:   true,
-		FilePath:    logDir,
-		FileName:    logFile,
-		LogLevel:    DebugLevel,
-		ShowConsole: false,
+		LogToFile:    true,
+		FilePath:     logDir,
+		FileName:     logFile,
+		LogLevel:     DebugLevel,
+		LogToConsole: false,
 	})
 
 	logger.Info("Test log entry")

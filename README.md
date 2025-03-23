@@ -19,11 +19,21 @@ import (
 
 func main() {
   logger := go_logger.New(go_logger.Config{
-  LogToFile:   true,
-  FilePath:    "./logs/",
-  FileName:    "app.log",
-  LogLevel:    go_logger.DebugLevel,
-  ShowConsole: true,
+	  LogToFile:   true,
+	  LogToConsole: true,
+	  FilePath:    "./logs/",
+	  FileName:    "app.log",
+	  LogLevel:    DebugLevel,
+	  ConsoleEncoder: EncodeConfig{
+		  Time:   true,
+		  Caller: true,
+		  Level:  true,
+	  },
+	  FileEncoder: EncodeConfig{
+		  Time:   true,
+		  Caller: true,
+		  Level:  true,
+	  },
   })
   
   logger.Info("Logger initialized!")

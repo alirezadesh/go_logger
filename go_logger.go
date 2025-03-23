@@ -8,11 +8,19 @@ import (
 )
 
 type Config struct {
-	LogToFile   bool
-	FilePath    string
-	FileName    string
-	LogLevel    zapcore.Level
-	ShowConsole bool
+	FilePath       string
+	FileName       string
+	LogLevel       zapcore.Level
+	LogToFile      bool
+	LogToConsole   bool
+	ConsoleEncoder EncodeConfig
+	FileEncoder    EncodeConfig
+}
+
+type EncodeConfig struct {
+	Time   bool
+	Level  bool
+	Caller bool
 }
 
 const (
@@ -47,8 +55,21 @@ func customColorLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEnco
 	enc.AppendString(color + level.CapitalString() + "\033[0m")
 }
 
+func applyEncoderConfig(enc zapcore.EncoderConfig, config EncodeConfig) zapcore.EncoderConfig {
+	if !config.Time {
+		enc.TimeKey = ""
+	}
+	if !config.Level {
+		enc.LevelKey = ""
+	}
+	if !config.Caller {
+		enc.CallerKey = ""
+	}
+	return enc
+}
+
 func New(config Config) *zap.Logger {
-	encoderConfig := zapcore.EncoderConfig{
+	baseEncoderConfig := zapcore.EncoderConfig{
 		TimeKey:      "timestamp",
 		LevelKey:     "level",
 		MessageKey:   "msg",
@@ -58,11 +79,13 @@ func New(config Config) *zap.Logger {
 		EncodeCaller: zapcore.FullCallerEncoder,
 	}
 
-	encoder := zapcore.NewConsoleEncoder(encoderConfig)
+	consoleEncoderConfig := applyEncoderConfig(baseEncoderConfig, config.ConsoleEncoder)
+	fileEncoderConfig := applyEncoderConfig(baseEncoderConfig, config.FileEncoder)
+
 	var cores []zapcore.Core
 
-	if config.ShowConsole {
-		consoleCore := zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), config.LogLevel)
+	if config.LogToConsole {
+		consoleCore := zapcore.NewCore(zapcore.NewConsoleEncoder(consoleEncoderConfig), zapcore.AddSync(os.Stdout), config.LogLevel)
 		cores = append(cores, consoleCore)
 	}
 
@@ -77,7 +100,7 @@ func New(config Config) *zap.Logger {
 			panic("Failed to open log file: " + err.Error())
 		}
 
-		fileCore := zapcore.NewCore(encoder, zapcore.AddSync(file), config.LogLevel)
+		fileCore := zapcore.NewCore(zapcore.NewConsoleEncoder(fileEncoderConfig), zapcore.AddSync(file), config.LogLevel)
 		cores = append(cores, fileCore)
 	}
 
@@ -89,13 +112,22 @@ func Error(err error) zap.Field {
 }
 
 /* How to use:
-logger := go_logger.New(go_logger.Config{
-LogToFile:   true,
-FilePath:    "./logs/",
-FileName:    "app.log",
-LogLevel:    go_logger.DebugLevel,
-ShowConsole: true,
-})
+logger := go_logger.New(Config{
+		LogToFile:    true,
+		LogToConsole: true,
+		FilePath:     "./logs/",
+		FileName:     "app.log",
+		LogLevel:     DebugLevel,
+		ConsoleEncoder: EncodeConfig{
+			Time:   true,
+			Caller: true,
+			Level:  true,
+		}, FileEncoder: EncodeConfig{
+			Time:   true,
+			Caller: true,
+			Level:  true,
+		},
+	})
 
 logger.Info("Logger initialized!")
 */
