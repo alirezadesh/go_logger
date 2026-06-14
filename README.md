@@ -19,26 +19,30 @@ import (
 
 func main() {
   logger := go_logger.New(go_logger.Config{
-	  LogToFile:   true,
+	  LogToFile:    true,
 	  LogToConsole: true,
-	  FilePath:    "./logs/",
-	  FileName:    "app.log",
-	  LogLevel:    DebugLevel,
-	  ConsoleEncoder: EncodeConfig{
+	  FilePath:     "./logs/",
+	  FileName:     "app.log",
+	  LogLevel:     go_logger.DebugLevel,
+	  ConsoleEncoder: go_logger.EncodeConfig{
 		  Time:   true,
 		  Caller: true,
 		  Level:  true,
 	  },
-	  FileEncoder: EncodeConfig{
+	  FileEncoder: go_logger.EncodeConfig{
 		  Time:   true,
 		  Caller: true,
 		  Level:  true,
 	  },
   })
-  
+
   logger.Info("Logger initialized!")
+  logger.Error("something failed", go_logger.Error(err))
 }
 ```
+
+Console output shows colored log levels; the log file is written as plain
+text without ANSI color codes.
 
 ## Log Levels 📊
  - `DebugLevel`

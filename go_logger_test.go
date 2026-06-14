@@ -1,6 +1,7 @@
 package go_logger
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -76,5 +77,36 @@ func TestLoggerWritesToFile(t *testing.T) {
 
 	if len(data) == 0 {
 		t.Fatal("Log file is empty, expected log entry")
+	}
+}
+
+func TestLoggerFileHasNoColorCodes(t *testing.T) {
+	logDir := "./test_logs"
+	logFile := "test.log"
+
+	defer func(path string) {
+		if err := os.RemoveAll(path); err != nil {
+			t.Fatal(err)
+		}
+	}(logDir)
+
+	logger := New(Config{
+		LogToFile:    true,
+		FilePath:     logDir,
+		FileName:     logFile,
+		LogLevel:     DebugLevel,
+		LogToConsole: false,
+		FileEncoder:  EncodeConfig{Level: true},
+	})
+
+	logger.Error("boom")
+
+	data, err := os.ReadFile(filepath.Join(logDir, logFile))
+	if err != nil {
+		t.Fatalf("Failed to read log file: %v", err)
+	}
+
+	if bytes.ContainsRune(data, '\x1b') {
+		t.Fatalf("Log file contains ANSI escape codes: %q", data)
 	}
 }
